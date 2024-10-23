@@ -9,9 +9,14 @@ todo_list = gui.Listbox(values=functions.get_todos(),
                         enable_events=True,
                         size=[45, 10])
 edit_button = gui.Button("Edit")
+complete_button = gui.Button("Complete")
+exit_button = gui.Button("Exit")
 
 window_instance = gui.Window("My To-do App", 
-                             layout = [[label], [input_box, add_button], [todo_list, edit_button]], 
+                             layout = [[label], 
+                                       [input_box, add_button], 
+                                       [todo_list, edit_button, complete_button]]
+                                       [exit_button], 
                              font=('Helvetica', 14))
 window_instance.read()
 
@@ -36,6 +41,17 @@ while True:
             todos[index] = new_todo + "\n"
             functions.save_todos(todos)
             window_instance["todos_list_box"].update(values=todos)
+
+        case "Complete":
+            todo_to_complete = values["todos_list_box"][0]
+            todos = functions.get_todos()
+            todos.remove(todo_to_complete)
+            functions.save_todos(todos)
+            window_instance["todos_list_box"].update(values=todos)
+            window_instance["todo_input_box"].update(value="")
+
+        case "Exit":
+            break
 
         case "todos_list_box":
             window_instance["todo_input_box"].update(value=values["todos_list_box"][0].strip())

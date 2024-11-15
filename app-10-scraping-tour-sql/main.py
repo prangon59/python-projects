@@ -4,6 +4,10 @@ import requests
 import selectorlib
 from dotenv import load_dotenv
 import os
+import sqlite3
+import time
+
+connection = sqlite3.connect("data.db")
 
 load_dotenv()
 
@@ -40,22 +44,33 @@ def send_email(message):
 
 
 def store_data(extracted):
-    with open("data.txt", "a") as file:
-        file.write(extracted + "\n")
+    row = extracted.split(',')
+    row = [item.strip() for item in row]
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO events VALUES (?,?,?)", row)
+    connection.commit()
 
 
 def read_data(extracted):
-    with open("data.txt", "r") as file:
-        return file.read()
+    row = extracted.split(',')
+    row = [item.strip() for item in row]
+    cursor = connection.cursor()
+    band, city, date = row
+    cursor.execute("SELECT * FROM events WHERE band=? AND city=? AND date=?",(band, city, date))
+    rows = cursor.fetchall()
+    print(rows)
+    return rows
         
 
 if __name__ == "__main__":
-    scraped = scrape(URL)
-    extracted = extract(scraped)
-    print(extracted)
+    while True:
+        scraped = scrape(URL)
+        extracted = extract(scraped)
+        print(extracted)
 
-    content = read_data(extracted)
-    if extracted != "No upcoming tours":
-        if extracted not in content:
-            store_data(extracted)
-            send_email(message="New event found.")
+        if extracted != "No upcoming tours":
+            row = read_data(extracted)
+            if not row:
+                store_data(extracted)
+                send_email(message="New event found.")
+    time.sleep(2)

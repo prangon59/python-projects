@@ -17,12 +17,18 @@ class MainWindow(QMainWindow):
 
         file_menu_item = self.menuBar().addMenu("&File")
         help_menu_item = self.menuBar().addMenu("&Help")
+        edit_menu_item = self.menuBar().addMenu("&Edit")
 
         add_student_action = QAction("Add Student", self)
         add_student_action.triggered.connect(self.insert)
         file_menu_item.addAction(add_student_action)
+
         about_action = QAction("About", self)   
         help_menu_item.addAction(about_action)
+
+        search_action = QAction("Search", self)
+        search_action.triggered.connect(self.search)
+        edit_menu_item.addAction(search_action)
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
@@ -43,6 +49,10 @@ class MainWindow(QMainWindow):
     
     def insert(self):
         dialog = InsertDialog()
+        dialog.exec()
+
+    def search(self):
+        dialog = SearchDialog()
         dialog.exec()
 
 
@@ -89,10 +99,47 @@ class InsertDialog(QDialog):
         connection.commit()
         cursor.close()
         connection.close()
-        sts.load_data()
+        main_window.load_data()
 
+
+class SearchDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Search Data")
+        self.setFixedHeight(300)
+        self.setFixedWidth(300)
+
+        layout = QVBoxLayout()
+
+        # Add search action dialog
+        self.student_name = QLineEdit()
+        self.student_name.setPlaceholderText("Search Here")
+        layout.addWidget(self.student_name)
+
+        # Create Button
+        button = QPushButton("Search")
+        button.clicked.connect(self.perform_search)
+        layout.addWidget(button)
+
+        self.setLayout(layout)
+
+    def perform_search(self):
+         # Logic for searching in the database
+        name = self.student_name.text()
+        connection = sqlite3.connect("database.db")
+        cursor = connection.cursor()
+        results = list(cursor.execute("SELECT * FROM students WHERE name LIKE ?", ('%' + name + '%',)))
+        print(results)
+        items = main_window.table.findItems(name, Qt.MatchFlag.MatchContains)
+        for item in items:
+            print(item)
+            # Print or process results (you can display them in a table or another dialog)
+            print(f"Search results for '{name}': {results}")
+            main_window.table.item(item.row(), 1).setSelected(True)
+        cursor.close()
+        connection.close()
 
 app = QApplication(sys.argv)
-sts = MainWindow()
-sts.show()
+main_window = MainWindow()
+main_window.show()
 sys.exit(app.exec())

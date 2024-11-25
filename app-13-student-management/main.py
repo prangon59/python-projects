@@ -15,8 +15,8 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
 
         file_menu_item = self.menuBar().addMenu("&File")
-        help_menu_item = self.menuBar().addMenu("&Help")
         edit_menu_item = self.menuBar().addMenu("&Edit")
+        help_menu_item = self.menuBar().addMenu("&Help")
 
         add_student_action = QAction(QIcon("icons\\add.png"), "Add Student", self)
         add_student_action.triggered.connect(self.insert)
@@ -24,6 +24,7 @@ class MainWindow(QMainWindow):
 
         about_action = QAction("About", self)   
         help_menu_item.addAction(about_action)
+        about_action.triggered.connect(self.about)
 
         search_action = QAction(QIcon("icons\\search.png"), "Search", self)
         search_action.triggered.connect(self.search)
@@ -90,6 +91,10 @@ class MainWindow(QMainWindow):
 
     def delete(self):
         dialog = DeleteDialog()
+        dialog.exec()
+
+    def about(self):
+        dialog = AboutDialog()
         dialog.exec()
 
 
@@ -267,7 +272,15 @@ class DeleteDialog(QDialog):
         confirm_widget.setWindowTitle("Success")
         confirm_widget.setText("The record deleted successfully.")
         confirm_widget.exec()
-        
+
+
+class AboutDialog(QMessageBox):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("About")
+        content = '''i created this app while doing the course of pyhton mega course from udemy. 
+        It was a really nice course to do and learn along the way'''
+        self.setText(content)
 
 app = QApplication(sys.argv)
 main_window = MainWindow()
